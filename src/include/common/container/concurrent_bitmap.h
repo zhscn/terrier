@@ -168,7 +168,9 @@ class RawConcurrentBitmap {
    */
   void UnsafeClear(const uint32_t num_bits) {
     auto size = RawBitmap::SizeInBytes(num_bits);
-    std::memset(bits_, 0, size);
+    // std::memset(bits_, 0, size);
+    for (unsigned int i = 0; i < size; i++)
+      bits_[i] = 0;
   }
 
   // TODO(Tianyu): We will eventually need optimization for bulk checks and

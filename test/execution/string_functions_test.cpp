@@ -6,6 +6,7 @@
 
 #include "execution/tpl_test.h"
 
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 
 #include "execution/exec/execution_context.h"
