@@ -430,7 +430,7 @@ std::string AstDump::Dump(AstNode *node) {
   llvm::raw_svector_ostream stream(buffer);
   AstDumperImpl print(node, stream);
   print.Run();
-  return buffer.str();
+  return buffer.str().str();
 }
 
 }  // namespace terrier::execution::ast

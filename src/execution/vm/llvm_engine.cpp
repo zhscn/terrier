@@ -7,7 +7,14 @@
 #include <utility>
 #include <vector>
 
+//#include "llvm/Support/BCD.h"
+//#include "llvm/Support/Debug.h"
+//#include "llvm/Support/MemoryBuffer.h"
+//#include "llvm/Support/X86TargetParser.h"
+//#include "llvm/Support/raw_ostream.h"
+
 #include "llvm/ADT/StringMap.h"
+#include "llvm/ADT/Triple.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/Analysis/TargetTransformInfo.h"
 #include "llvm/Bitcode/BitcodeReader.h"
@@ -18,6 +25,9 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/MC/MCContext.h"
+#include "llvm/Support/CodeGen.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Host.h"
 #include "llvm/Support/DynamicLibrary.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/SmallVectorMemoryBuffer.h"
@@ -223,12 +233,12 @@ llvm::Type *LLVMEngine::TypeMap::GetLLVMTypeForBuiltin(const ast::BuiltinType *b
   const std::string name = builtin_type->CppName();
 
   // Try "struct" prefix
-  if (llvm::Type *type = module_->getTypeByName("struct." + name)) {
+  if (llvm::Type *type = llvm::StructType::getTypeByName(module_->getContext(), "struct." + name)) {
     return type;
   }
 
   // Try "class" prefix
-  if (llvm::Type *type = module_->getTypeByName("class." + name)) {
+  if (llvm::Type *type = llvm::StructType::getTypeByName(module_->getContext(), "class." + name)) {
     return type;
   }
 
@@ -970,7 +980,7 @@ void LLVMEngine::CompiledModuleBuilder::PersistObjectToFile(const llvm::MemoryBu
   const std::string file_name = TplModule().Name() + ".to";
 
   std::error_code error_code;
-  llvm::raw_fd_ostream dest(file_name, error_code, llvm::sys::fs::F_None);
+  llvm::raw_fd_ostream dest(file_name, error_code, llvm::sys::fs::OF_None);
 
   if (error_code) {
     EXECUTION_LOG_ERROR("Could not open file: {}", error_code.message());
@@ -996,7 +1006,7 @@ std::string LLVMEngine::CompiledModuleBuilder::DumpModuleAsm() {
   llvm::legacy::PassManager pass_manager;
   pass_manager.add(llvm::createTargetTransformInfoWrapperPass(TargetMachine()->getTargetIRAnalysis()));
   target_machine_->Options.MCOptions.AsmVerbose = true;
-  target_machine_->addPassesToEmitFile(pass_manager, ostream, nullptr, llvm::TargetMachine::CGFT_AssemblyFile);
+  target_machine_->addPassesToEmitFile(pass_manager, ostream, nullptr, llvm::CodeGenFileType::CGFT_AssemblyFile);
   pass_manager.run(*llvm_module_);
   target_machine_->Options.MCOptions.AsmVerbose = false;
 
